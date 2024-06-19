@@ -114,7 +114,7 @@ def sum_stock():
     qr_content = request.get_json()
 
     # Obtener el nombre del producto del código QR
-    product_name = qr_content.get('name')
+    product_name = str(qr_content.get('name'))
 
     # Buscar el producto en la base de datos
     product = db.products.find_one({"name": product_name})
@@ -135,7 +135,11 @@ def sum_stock():
                 
                 # Actualizar el documento en la base de datos
                 db.products.update_one({"_id": product["_id"]}, {"$set": {"variants": product['variants'], "totalStock": product['totalStock']}})
+                variant_index = product['variants'].index(variant)
+                db.packages.insert_one({"name_product": product_name, "type": "E", "date": {"$currentDate": {"$type": "date"}}, "stock": stock_change, "prodVal": variant_index})
                 return "\n \n Stock actualizado correctamente.",200
+
+                
         
         return "\n \n No se encontró una variante correspondiente para actualizar el stock.",404
     else:
@@ -169,6 +173,8 @@ def subtract_stock():
                 
                 # Actualizar el documento en la base de datos
                 db.products.update_one({"_id": product["_id"]}, {"$set": {"variants": product['variants'], "totalStock": product['totalStock']}})
+                variant_index = product['variants'].index(variant)
+                db.packages.insert_one({"name_product": product_name, "type": "S", "date": {"$currentDate": {"$type": "date"}}, "stock": stock_change, "prodVal": variant_index })
                 return "\n \n Stock actualizado correctamente.",200
         
         return "\n \n No se encontró una variante correspondiente para actualizar el stock.",404
@@ -177,3 +183,5 @@ def subtract_stock():
 
 if __name__ == "__main__":
     app.run(host='127.0.0.1', port=5000, debug=True)
+
+
